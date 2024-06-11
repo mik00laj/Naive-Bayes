@@ -52,13 +52,13 @@ def game_state_to_data_sample(game_state):
     food_position = game_state['food']
     snake_direction = game_state['snake_direction']
 
-    # Inicjalizacja wektora cech
+    # Initializing the Feature Vector
     features = []
     head_x, head_y = snake_body[-1]
     default_bounds = (300, 300)
     bounds = game_state.get('bounds', default_bounds)
 
-    # Cechy dotyczące przeszkód
+    # Features Related to Obstacles
     obstacles = {
         'left': any((head_x - 30, head_y) == segment for segment in snake_body) or head_x <= 0,
         'right': any((head_x + 30, head_y) == segment for segment in snake_body) or head_x >= bounds[0] - 30,
@@ -67,7 +67,7 @@ def game_state_to_data_sample(game_state):
     }
     features.extend(obstacles.values())
 
-    # Cechy dotyczące lokalizacji jedzenia
+    # Features Related to Food Location
     food_direction = {
         'food_left': food_position[0] < head_x,
         'food_right': food_position[0] > head_x,
@@ -76,7 +76,7 @@ def game_state_to_data_sample(game_state):
     }
     features.extend(food_direction.values())
 
-    # Dodanie aktualnego kierunku ruchu węża jako cechy
+    # Adding the Current Direction of Snake Movement as a Feature
     direction_feature = [0, 0, 0, 0]
     if snake_direction == Direction.UP:
         direction_feature[0] = 1

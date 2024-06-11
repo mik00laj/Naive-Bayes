@@ -11,17 +11,17 @@ def load_and_prepare_data(train_data_path, test_data_path):
     data_train = pd.read_csv(train_data_path)
     data_test = pd.read_csv(test_data_path)
 
-    # Przygotowanie danych treningowych
+    # Preparing Training Data
     data_train['Age'] = data_train['Age'].fillna(data_train['Age'].median())
     data_train['Embarked'] = data_train['Embarked'].fillna('S')
     data_train['Fare'] = data_train['Fare'].fillna(data_train['Fare'].median())
 
-    # Przygotowanie danych testowych
+    # Preparing Testing Data
     data_test['Age'] = data_test['Age'].fillna(data_test['Age'].median())
     data_test['Embarked'] = data_test['Embarked'].fillna('S')
     data_test['Fare'] = data_test['Fare'].fillna(data_test['Fare'].median())
 
-    # Tworzenie grup wiekowych
+    # Creating Age Groups
     data_train['AgeGroup'] = pd.cut(data_train['Age'], bins=[0, 12, 18, 65, 100],
                                     labels=['Child', 'Teen', 'Adult', 'Senior'])
     data_test['AgeGroup'] = pd.cut(data_test['Age'], bins=[0, 12, 18, 65, 100],
@@ -31,11 +31,11 @@ def load_and_prepare_data(train_data_path, test_data_path):
 
 
 def preprocess_data(data_train, data_test, features, target):
-    # Konwersja zmiennych kategorycznych na numeryczne
+    # Converting Categorical Variables to Numerical
     data_train = pd.get_dummies(data_train[features + [target]], drop_first=True)
     data_test = pd.get_dummies(data_test[features], drop_first=True)
 
-    # Sprawdzenie czy  kolumny w danych testowych są takie same jak w danych treningowych
+    # Checking if the Columns in the Testing Data are the Same as in the Training Data
     missing_cols = set(data_train.columns) - set(data_test.columns) - {target}
     for c in missing_cols:
         data_test[c] = 0
@@ -77,8 +77,8 @@ def plot_confusion_matrix(y_true, y_pred, title):
     plt.title(title)
     plt.show()
 
-#Funkcja ta przekształca cechy pasażera na wektor cech zgodny z danymi treningowymi,
-#a następnie używa modelu Naive Bayes do obliczenia prawdopodobieństwa przeżycia.
+#This function transforms passenger features into a feature vector consistent with the training data,
+#and then uses the Naive Bayes model to calculate the probability of survival.
 
 def predict_survival_proba(nb, conditions, data_train, target):
     sample = pd.DataFrame([conditions])
@@ -94,24 +94,24 @@ def main():
     features = ['Pclass', 'Sex', 'AgeGroup', 'Fare', 'Embarked']
     target = 'Survived'
 
-    # Przygotowanie danych
+    # Data Preparation
     data_train, data_test = load_and_prepare_data(train_data_path, test_data_path)
     data_train, data_test = preprocess_data(data_train, data_test, features, target)
 
-    # Podział danych treningowych na treningowe i walidacyjne
+    # Splitting Training Data into Training and Validation Sets
     X = data_train.drop(target, axis=1).values
     y = data_train[target].values
 
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Trenowanie własnego klasyfikatora Naive Bayes
+    # Training a Custom Naive Bayes Classifier
     nb, y_pred_train, y_pred_val = train_and_evaluate_model(X_train, y_train, X_val, y_val)
 
-    # Rysowanie macierzy konfuzji
+    # Drawing the Confusion Matrix
     plot_confusion_matrix(y_train, y_pred_train, "Confusion Matrix - Training Data")
     plot_confusion_matrix(y_val, y_pred_val, "Confusion Matrix - Validation Data")
 
-    # Obliczanie prawdopodobieństw dla różnych warunków
+    # Calculating Probabilities for Different Conditions
     conditions = {
         "Pclass": 1,
         "Sex_male": 1,
@@ -134,7 +134,7 @@ def main():
     conditions["Sex_male"] = 0
     print("Prawdopodobieństwo przeżycia dla dziewczynki:", predict_survival_proba(nb, conditions, data_train, target))
 
-    # Tworzenie pliku gender_submission.csv
+    # Creating the gender_submission.csv File
     y_pred_test = nb.predict(data_test.values)
     submission = pd.DataFrame({'PassengerId': pd.read_csv(test_data_path)['PassengerId'], 'Survived': y_pred_test})
     submission.to_csv('gender_submission.csv', index=False)

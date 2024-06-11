@@ -112,7 +112,7 @@ def main():
         pygame.display.update()
 
     print(f"Scores: {scores}")
-    # Obliczenie średniej z wyników
+    # Calculating the Average of the Results
     avg_score = sum(scores) / len(scores)
     print(f"Avg. Score: {avg_score}")
     pygame.quit()
